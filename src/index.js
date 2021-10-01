@@ -6,6 +6,8 @@ let app = express();
 let ip = "192.168.88.240";
 
 let defaultLumaParameters = {
+    onAir: 0,
+    //
     inputFill: 3,
     inputKey: 3,
     //
@@ -46,69 +48,76 @@ var __SimpleSwitcher = edge.func({
     
         static class Helper
         {
+            private static SimpleSwitcher.RunCommands run = new SimpleSwitcher.RunCommands();
+
             public static void CarregarImagemTemaCulto(dynamic param)
             {
-                new SimpleSwitcher.RunCommands().CarregarImagemTemaCulto(param.ip, param.imageIndex);
+                run.CarregarImagemTemaCulto(param.ip, param.imageIndex);
             }
 
             public static void ExecutarAberturaCulto(dynamic param)
             {
-                new SimpleSwitcher.RunCommands().ExecutarAberturaCulto(param.ip, param.tempoFrames);
+                run.ExecutarAberturaCulto(param.ip, param.tempoFrames);
             }
 
             public static void ExecutarEncerramentoCulto(dynamic param)
             {
-                new SimpleSwitcher.RunCommands().ExecutarEncerramentoCulto(param.ip, param.indexImagemEncerramento, param.inputEncerramento, param.tempoTransicaoFinal, param.tempoEsperaAntesTerminar);
+                run.ExecutarEncerramentoCulto(param.ip, param.indexImagemEncerramento, param.inputEncerramento, param.tempoTransicaoFinal, param.tempoEsperaAntesTerminar);
             }
 
             public static void ExibirOferta(dynamic param)
             {
-                new SimpleSwitcher.RunCommands().ExibirOferta(param.ip, param.indexImagem);
+                run.ExibirOferta(param.ip, param.indexImagem);
             }
 
             public static void OcultarOferta(dynamic param)
             {
-                new SimpleSwitcher.RunCommands().OcultarOferta(param.ip);
+                run.OcultarOferta(param.ip);
             }
 
             public static void DefinirSaidaAuxiliar(dynamic param)
             {
-                new SimpleSwitcher.RunCommands().DefinirSaidaAuxiliar(param.ip, param.tipoInput, param.inputIndex);
+                run.DefinirSaidaAuxiliar(param.ip, param.tipoInput, param.inputIndex);
             }
 
             public static void AtivarLegendaCoral(dynamic param)
             {
-                new SimpleSwitcher.RunCommands().AtivarLegendaCoral(param.ip, param.lumaParameters);
+                run.AtivarLegendaCoral(param.ip, param.lumaParameters);
             }
 
             public static void DesativarLegendaCoral(dynamic param)
             {
-                new SimpleSwitcher.RunCommands().DesativarLegendaCoral(param.ip);
+                run.DesativarLegendaCoral(param.ip);
+            }
+
+            public static void AtivarUpstream1(dynamic param)
+            {
+                run.AtivarUpstream1(param.ip, param.lumaParameters);
             }
 
             public static void DefinirPreview(dynamic param)
             {
-                new SimpleSwitcher.RunCommands().DefinirPreview(param.ip, param.tipoInput, param.inputIndex);
+                run.DefinirPreview(param.ip, param.tipoInput, param.inputIndex);
             }
 
             public static void DefinirProgram(dynamic param)
             {
-                new SimpleSwitcher.RunCommands().DefinirProgram(param.ip, param.tipoInput, param.inputIndex);
+                run.DefinirProgram(param.ip, param.tipoInput, param.inputIndex);
             }
 
             public static void PerformAutoTransition(dynamic param)
             {
-                new SimpleSwitcher.RunCommands().PerformAutoTransition(param.ip);
+                run.PerformAutoTransition(param.ip);
             }
 
             public static void ListarSwitcherInputs(dynamic param)
             {
-                new SimpleSwitcher.RunCommands().ListarSwitcherInputs(param.ip);
+                run.ListarSwitcherInputs(param.ip);
             }
 
             public static void SwitcherStatus(dynamic param)
             {
-                new SimpleSwitcher.RunCommands().SwitcherStatus(param.ip);
+                run.SwitcherStatus(param.ip);
             }
 
         }
@@ -120,7 +129,7 @@ let RunnableFunctions = {
     carregarImagemCultoEnsino: (recall) => {
         __SimpleSwitcher({
             method: "CarregarImagemTemaCulto", 
-            param: {ip: ip, imageIndex: 1}
+            param: {ip: ip, imageIndex: 3}
         }, recall);
     },
 
@@ -318,6 +327,63 @@ app.get('/run/:func', function(req, res) {
     {
         res.status(500).send("Nao localizado");
     }
+});
+
+app.get('/run/upstream/:input', function(req, res) {
+    __SimpleSwitcher({
+        method: "ExibirOferta", 
+        param: {
+            ip: ip,
+            indexImagem: 19
+        }
+    }, () => {
+        __SimpleSwitcher({
+            method: "AtivarUpstream1", 
+            param: { 
+                ip: ip,
+                lumaParameters: {
+                    onAir: 1,
+                    //
+                    inputFill: parseInt(req.params.input),
+                    inputKey: parseInt(req.params.input),
+                    //
+                    masked: 0,
+                    maskTop: 0,
+                    maskBottom: 0,
+                    maskRight: 0,
+                    maskLeft: 0,
+                    //
+                    preMultiplied: 0,
+                    preMultipliedClip: 0,
+                    preMultipliedGain: 1,
+                    preMultipliedInvertKey: 0,
+                    //
+                    fly: 1,
+                    flySizeX: 0.65,
+                    flySizeY: 0.65,
+                    flyPositionX: 5.3,
+                    flyPositionY: 0.65
+                    }
+                }
+            }, function (error, result) {
+                if(error) {
+                    console.log("erro", error);
+                    //
+                    fs.writeFile('src/reload.txt',`${new Date().getUTCMilliseconds()}`, function (err,data) {
+                        if (err) {
+                            return console.log(err);
+                        }
+                        console.log(data);
+                    });
+                    //
+                    res.redirect(301, 'http://localhost:3000' + req.path);
+                    //
+                } else {
+                    console.log("sucesso");
+                    res.send(`OK - ${req.params.func}`);
+                }
+            });
+    });
 });
 
 app.get('/run/aux/:tipo/:input', function(req, res) {
