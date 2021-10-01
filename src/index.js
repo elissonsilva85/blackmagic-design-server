@@ -296,6 +296,20 @@ let RunnableFunctions = {
 
 }
 
+let errorHandling = function(error, req, res) {
+    console.log("erro", error);
+    //
+    fs.writeFile('src/reload.txt',`${new Date().getUTCMilliseconds()}`, function (err,data) {
+        if (err) {
+            return console.log(err);
+        }
+        console.log(data);
+    });
+    //
+    res.redirect(301, 'http://localhost:3000' + req.path);
+    //
+}
+
 app.get('/', function(req, res) {
     res.send('Olá Mundo!');
 });
@@ -306,20 +320,10 @@ app.get('/run/:func', function(req, res) {
         RunnableFunctions[req.params.func](
             function (error, result) {
                 if(error) {
-                    console.log("erro", error);
-                    //
-                    fs.writeFile('src/reload.txt',`${new Date().getUTCMilliseconds()}`, function (err,data) {
-                        if (err) {
-                          return console.log(err);
-                        }
-                        console.log(data);
-                    });
-                    //
-                    res.redirect(301, 'http://localhost:3000' + req.path);
-                    //
+                    errorHandling(error, req, res);
                 } else {
                     console.log("sucesso");
-                    res.send(`OK - ${req.params.func}`);
+                    res.send(`OK - /run/${req.params.func}`);
                 }
             });
     }
@@ -367,20 +371,10 @@ app.get('/run/upstream/:input', function(req, res) {
                 }
             }, function (error, result) {
                 if(error) {
-                    console.log("erro", error);
-                    //
-                    fs.writeFile('src/reload.txt',`${new Date().getUTCMilliseconds()}`, function (err,data) {
-                        if (err) {
-                            return console.log(err);
-                        }
-                        console.log(data);
-                    });
-                    //
-                    res.redirect(301, 'http://localhost:3000' + req.path);
-                    //
+                    errorHandling(error, req, res);
                 } else {
                     console.log("sucesso");
-                    res.send(`OK - ${req.params.func}`);
+                    res.send(`OK - /run/upstream/${req.params.input}`);
                 }
             });
     });
@@ -396,20 +390,10 @@ app.get('/run/aux/:tipo/:input', function(req, res) {
         }
     }, function (error, result) {
         if(error) {
-            console.log("erro", error);
-            //
-            fs.writeFile('src/reload.txt',`${new Date().getUTCMilliseconds()}`, function (err,data) {
-                if (err) {
-                    return console.log(err);
-                }
-                console.log(data);
-            });
-            //
-            res.redirect(301, 'http://localhost:3000' + req.path);
-            //
+            errorHandling(error, req, res);
         } else {
             console.log("sucesso");
-            res.send(`OK - ${req.params.func}`);
+            res.send(`OK - /run/aux/${req.params.tipo}/${req.params.input}`);
         }
     });
 });
@@ -424,20 +408,10 @@ app.get('/run/pgm/:tipo/:input', function(req, res) {
         }
     }, function (error, result) {
         if(error) {
-            console.log("erro", error);
-            //
-            fs.writeFile('src/reload.txt',`${new Date().getUTCMilliseconds()}`, function (err,data) {
-                if (err) {
-                    return console.log(err);
-                }
-                console.log(data);
-            });
-            //
-            res.redirect(301, 'http://localhost:3000' + req.path);
-            //
+            errorHandling(error, req, res);
         } else {
             console.log("sucesso");
-            res.send(`OK - ${req.params.func}`);
+            res.send(`OK - /run/pgm/${req.params.tipo}/${req.params.input}`);
         }
     });
 });
@@ -452,20 +426,10 @@ app.get('/run/prev/:tipo/:input', function(req, res) {
         }
     }, function (error, result) {
         if(error) {
-            console.log("erro", error);
-            //
-            fs.writeFile('src/reload.txt',`${new Date().getUTCMilliseconds()}`, function (err,data) {
-                if (err) {
-                    return console.log(err);
-                }
-                console.log(data);
-            });
-            //
-            res.redirect(301, 'http://localhost:3000' + req.path);
-            //
+            errorHandling(error, req, res);
         } else {
             console.log("sucesso");
-            res.send(`OK - ${req.params.func}`);
+            res.send(`OK - /run/prev/${req.params.tipo}/${req.params.input}`);
         }
     });
 });
