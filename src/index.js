@@ -65,14 +65,14 @@ var __SimpleSwitcher = edge.func({
                 run.ExecutarEncerramentoCulto(param.ip, param.indexImagemEncerramento, param.inputEncerramento, param.tempoTransicaoFinal, param.tempoEsperaAntesTerminar);
             }
 
-            public static void ExibirOferta(dynamic param)
+            public static void AtivarDownstreamKey(dynamic param)
             {
-                run.ExibirOferta(param.ip, param.indexImagem);
+                run.AtivarDownstreamKey(param.ip, param.dskIndex, param.indexImagem);
             }
 
-            public static void OcultarOferta(dynamic param)
+            public static void DesativarDownstreamKey(dynamic param)
             {
-                run.OcultarOferta(param.ip);
+                run.DesativarDownstreamKey(param.ip, param.dskIndex);
             }
 
             public static void DefinirSaidaAuxiliar(dynamic param)
@@ -95,6 +95,11 @@ var __SimpleSwitcher = edge.func({
                 run.AtivarUpstream1(param.ip, param.lumaParameters);
             }
 
+            public static void DesativarUpstream1(dynamic param)
+            {
+                run.DesativarUpstream1(param.ip);
+            }
+
             public static void DefinirPreview(dynamic param)
             {
                 run.DefinirPreview(param.ip, param.tipoInput, param.inputIndex);
@@ -110,6 +115,11 @@ var __SimpleSwitcher = edge.func({
                 run.PerformAutoTransition(param.ip);
             }
 
+            public static void PerformCut(dynamic param)
+            {
+                run.PerformCut(param.ip);
+            }
+
             public static void ListarSwitcherInputs(dynamic param)
             {
                 run.ListarSwitcherInputs(param.ip);
@@ -122,7 +132,7 @@ var __SimpleSwitcher = edge.func({
 
         }
     */},
-    references: ["SimpleSwitcher.dll"]
+    references: ["./dll/SimpleSwitcher.dll"]
 });
 
 let RunnableFunctions = {
@@ -244,15 +254,15 @@ let RunnableFunctions = {
 
     exibirOferta: (recall) => {
         __SimpleSwitcher({
-            method: "ExibirOferta", 
-            param: {ip: ip, indexImagem: 11}
+            method: "AtivarDownstreamKey", 
+            param: {ip: ip, dskIndex: 0, indexImagem: 11}
         }, recall);
     },
 
     ocultarOferta: (recall) => {
         __SimpleSwitcher({
-            method: "OcultarOferta", 
-            param: {ip: ip}
+            method: "DesativarDownstreamKey", 
+            param: {ip: ip, dskIndex: 0}
         }, recall);
     },
 
@@ -276,6 +286,13 @@ let RunnableFunctions = {
     performAutoTransition: (recall) => {
         __SimpleSwitcher({
             method: "PerformAutoTransition", 
+            param: { ip: ip }
+        }, recall);
+    },
+
+    performCut: (recall) => {
+        __SimpleSwitcher({
+            method: "PerformCut", 
             param: { ip: ip }
         }, recall);
     },
@@ -333,50 +350,93 @@ app.get('/run/:func', function(req, res) {
     }
 });
 
-app.get('/run/upstream/:input', function(req, res) {
+app.get('/run/downstream/:dsk/:image', function(req, res) {
     __SimpleSwitcher({
-        method: "ExibirOferta", 
+        method: "AtivarDownstreamKey", 
         param: {
             ip: ip,
-            indexImagem: 19
+            dskIndex: parseInt(req.params.dsk),
+            indexImagem: parseInt(req.params.image)
         }
-    }, () => {
-        __SimpleSwitcher({
-            method: "AtivarUpstream1", 
-            param: { 
-                ip: ip,
-                lumaParameters: {
-                    onAir: 1,
-                    //
-                    inputFill: parseInt(req.params.input),
-                    inputKey: parseInt(req.params.input),
-                    //
-                    masked: 0,
-                    maskTop: 0,
-                    maskBottom: 0,
-                    maskRight: 0,
-                    maskLeft: 0,
-                    //
-                    preMultiplied: 0,
-                    preMultipliedClip: 0,
-                    preMultipliedGain: 1,
-                    preMultipliedInvertKey: 0,
-                    //
-                    fly: 1,
-                    flySizeX: 0.65,
-                    flySizeY: 0.65,
-                    flyPositionX: 5.3,
-                    flyPositionY: 0.65
-                    }
-                }
-            }, function (error, result) {
-                if(error) {
-                    errorHandling(error, req, res);
-                } else {
-                    console.log("sucesso");
-                    res.send(`OK - /run/upstream/${req.params.input}`);
-                }
-            });
+    }, function (error, result) {
+        if(error) {
+            errorHandling(error, req, res);
+        } else {
+            console.log("sucesso");
+            res.send(`OK - /run/downstream/${req.params.dsk}/${req.params.image}`);
+        }
+    });
+});
+
+app.get('/run/downstream/:dsk/offAir', function(req, res) {
+    __SimpleSwitcher({
+        method: "DesativarDownstreamKey", 
+        param: {
+            ip: ip,
+            dskIndex: parseInt(req.params.dsk)
+        }
+    }, function (error, result) {
+        if(error) {
+            errorHandling(error, req, res);
+        } else {
+            console.log("sucesso");
+            res.send(`OK - /run/downstream/${req.params.dsk}/offAir`);
+        }
+    });
+});
+
+app.get('/run/upstream/:input', function(req, res) {
+    __SimpleSwitcher({
+        method: "AtivarUpstream1", 
+        param: { 
+            ip: ip,
+            lumaParameters: {
+                onAir: 1,
+                //
+                inputFill: parseInt(req.params.input),
+                inputKey: parseInt(req.params.input),
+                //
+                masked: 0,
+                maskTop: 0,
+                maskBottom: 0,
+                maskRight: 0,
+                maskLeft: 0,
+                //
+                preMultiplied: 0,
+                preMultipliedClip: 0,
+                preMultipliedGain: 1,
+                preMultipliedInvertKey: 0,
+                //
+                fly: 1,
+                flySizeX: 0.65,
+                flySizeY: 0.65,
+                flyPositionX: 5.3,
+                flyPositionY: 0.65
+            }
+        }
+    }, function (error, result) {
+        if(error) {
+            errorHandling(error, req, res);
+        } else {
+            console.log("sucesso");
+            res.send(`OK - /run/upstream/${req.params.input}`);
+        }
+    });
+});
+
+app.get('/run/upstream/offAir', function(req, res) {
+    __SimpleSwitcher({
+        method: "DesativarUpstream1", 
+        param: { 
+            ip: ip
+        }
+    }, function (error, result) {
+        if(error) {
+            errorHandling(error, req, res);
+        } else {
+            console.log("sucesso");
+            res.send(`OK - /run/upstream/offAir`);
+        }
     });
 });
 
